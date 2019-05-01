@@ -22,3 +22,6 @@ app.listen(port, () => {
 
 const login = require('./routes/login'); // 
 app.use('/login', login);
+
+const user = require('./routes/user'); // 
+app.use('/user', user);
