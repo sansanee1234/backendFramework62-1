@@ -7,10 +7,10 @@ router.get("/", (req, res) => {
         status: "user"
     });
 });
-router.get('/list/:1', (req, res) => {
-    const pageNumber = req.params.pageNumber;
-    console.log(pageNumber);
 
+router.get('/list/:pageNumber', (req, res) => {
+    const pageNumber = req.params.pageNumber;
+    let itemPerPage = 10;
     MongoClient.connect(
         "mongodb+srv://weerayut:22374736@cluster0-4wunc.gcp.mongodb.net/newDatabase62?retryWrites=true", {
             useNewUrlParser: true
@@ -24,12 +24,15 @@ router.get('/list/:1', (req, res) => {
             dbo
                 .collection('userLoginTable')
                 .find({}, {
-                    limit: 10,
-                    skip: 10 * (Number(pageNumber) - 1),
+                    limit: itemPerPage,
+                    skip: itemPerPage * (Number(pageNumber) - 1),
                     projection: {
-                        _id: 0,
+                        _id: 1,
+                        rank: 1,
                         first_name: 1,
                         last_name: 1,
+                        id_mil: 1,
+                        unit_name: 1,
                         username: 1
                     }
                 })
@@ -38,8 +41,11 @@ router.get('/list/:1', (req, res) => {
                 })
                 .toArray(function (err, result) {
                     if (err) {
+                        console.log(err);
+
                         res.sendStatus(404);
                     } else {
+                        console.log(result);
                         res.send(result);
                     }
                     db.close();
@@ -48,5 +54,36 @@ router.get('/list/:1', (req, res) => {
     );
 });
 
+router.get('/list-count', (req, res) => {
+    MongoClient.connect(
+        "mongodb+srv://weerayut:22374736@cluster0-4wunc.gcp.mongodb.net/newDatabase62?retryWrites=true", {
+            useNewUrlParser: true
+        },
+        function (err, db) {
+            if (err) {
+                res.sendStatus(404);
+                return;
+            }
+            let dbo = db.db("newDatabase62");
+            dbo
+                .collection('userLoginTable')
+                .find({})
+                .count(function (err, result) {
+                    if (err) {
+                        console.log(err);
+                        res.sendStatus(404);
+                    }
+                    if (result) {
+                        res.send({
+                            total_item: result
+                        });
+                    } else {
+                        res.sendStatus(404);
+                    }
+                    db.close();
+                });
+        }
+    );
+});
 
 module.exports = router;
